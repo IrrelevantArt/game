@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-fullscreen">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Quiz Navidad 2024</title>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;600;700&family=Orbitron:wght@400;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: linear-gradient(135deg, #2d2438 0%, #3d3450 100%);
+            color: #f5f0f6;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #app {
+            width: 100%;
+            height: 100%;
+            max-width: 1920px;
+            max-height: 1080px;
+            aspect-ratio: 16/9;
+            position: relative;
+            background: #3a2f4a;
+            box-shadow: 0 0 50px rgba(129, 116, 160, 0.3);
+        }
+        
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            padding: 3%;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+        
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(239, 182, 200, 0.4), 0 0 10px rgba(239, 182, 200, 0.3); }
+            50% { box-shadow: 0 0 10px rgba(239, 182, 200, 0.6), 0 0 20px rgba(239, 182, 200, 0.4); }
+        }
+        
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* MAIN BOARD */
+        #board {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1%;
+            flex: 1;
+            margin-bottom: 2%;
+        }
+        
+        .category {
+            display: flex;
+            flex-direction: column;
+            gap: 1%;
+        }
+        
+        .category-header {
+            background: linear-gradient(135deg, #6d5b7f 0%, #5d4d70 100%);
+            border: 1px solid #8174A0;
+            padding: 2%;
+            text-align: center;
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(0.8rem, 1.2vw, 1.5rem);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #EFB6C8;
+            box-shadow: 0 0 10px rgba(129, 116, 160, 0.3);
+        }
+        
+        .question-btn {
+            flex: 1;
+            background: linear-gradient(135deg, #7d6a92 0%, #6d5b7f 100%);
+            border: 1px solid #A888B5;
+            color: #f5f0f6;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: clamp(1.5rem, 2.5vw, 3rem);
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .question-btn:hover {
+            border-color: #EFB6C8;
+            animation: glow 1.5s infinite;
+            transform: scale(1.05);
+        }
+        
+        .question-btn.answered-correct {
+            background: linear-gradient(135deg, #558b2f 0%, #33691e 100%);
+            color: #c5e1a5;
+            border-color: #7cb342;
+        }
+        
+        .question-btn.answered-wrong {
+            background: linear-gradient(135deg, #c62828 0%, #b71c1c 100%);
+            color: #ffcdd2;
+            border-color: #e57373;
+        }
+        
+        .question-btn:disabled {
+            cursor: default;
+        }
+        
+        /* PLAYERS */
+        .players-container {
+            display: flex;
+            gap: 2%;
+            justify-content: center;
+            padding: 1% 0;
+        }
+        
+        .player {
+            flex: 1;
+            max-width: 22%;
+            background: linear-gradient(135deg, #6d5b7f 0%, #5d4d70 100%);
+            border: 2px solid #8174A0;
+            padding: 1.5%;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .player:hover {
+            border-color: #EFB6C8;
+        }
+        
+        .player.selected {
+            border-color: #EFB6C8;
+            box-shadow: 0 0 20px rgba(239, 182, 200, 0.6), inset 0 0 20px rgba(239, 182, 200, 0.2);
+            animation: glow 2s infinite;
+        }
+        
+        .player-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1rem, 1.5vw, 1.8rem);
+            font-weight: 700;
+            margin-bottom: 5%;
+            color: #EFB6C8;
+        }
+        
+        .player-score {
+            font-size: clamp(1.2rem, 2vw, 2.5rem);
+            font-weight: 600;
+            color: #f5f0f6;
+        }
+        
+        /* BUTTONS */
+        .btn-container {
+            position: absolute;
+            bottom: 3%;
+            display: flex;
+            gap: 2%;
+        }
+        
+        .btn-container.right {
+            right: 3%;
+        }
+        
+        .btn-container.left {
+            left: 3%;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #6d5b7f 0%, #5d4d70 100%);
+            border: 1px solid #8174A0;
+            color: #EFB6C8;
+            padding: 1% 2%;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: clamp(0.8rem, 1.2vw, 1.5rem);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(135deg, #EFB6C8 0%, #FFD2A0 100%);
+            color: #2d2438;
+            box-shadow: 0 0 20px rgba(239, 182, 200, 0.5);
+        }
+        
+        /* QUESTION SCREEN */
+        #question-screen {
+            justify-content: space-between;
+        }
+        
+        .question-container {
+            flex: 0 0 30%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 3%;
+            background: linear-gradient(135deg, #6d5b7f 0%, #5d4d70 100%);
+            border: 2px solid #8174A0;
+            box-shadow: 0 0 30px rgba(129, 116, 160, 0.4);
+        }
+        
+        .question-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(1.5rem, 2.5vw, 3rem);
+            font-weight: 600;
+            text-align: center;
+            color: #EFB6C8;
+            line-height: 1.4;
+        }
+        
+        .answers-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 2%;
+            padding: 2% 0;
+        }
+        
+        .answer-btn {
+            background: linear-gradient(135deg, #7d6a92 0%, #6d5b7f 100%);
+            border: 2px solid #A888B5;
+            color: #f5f0f6;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: clamp(1.2rem, 2vw, 2.5rem);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0;
+            padding: 3%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .answer-btn.show {
+            animation: slideIn 0.5s forwards;
+        }
+        
+        .answer-btn:hover:not(:disabled) {
+            border-color: #EFB6C8;
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(239, 182, 200, 0.4);
+        }
+        
+        .answer-btn.correct {
+            background: linear-gradient(135deg, #689f38 0%, #558b2f 100%);
+            border-color: #7cb342;
+            color: #c5e1a5;
+            box-shadow: 0 0 30px rgba(124, 179, 66, 0.6);
+        }
+        
+        .answer-btn.wrong {
+            background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
+            border-color: #e57373;
+            color: #ffcdd2;
+        }
+        
+        .answer-btn:disabled {
+            cursor: default;
+        }
+        
+        /* SCOREBOARD */
+        #scoreboard-screen {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .scoreboard-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(2rem, 4vw, 5rem);
+            font-weight: 900;
+            color: #8174A0;
+            margin-bottom: 5%;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+        
+        .leader {
+            font-size: clamp(3rem, 6vw, 8rem);
+            font-weight: 900;
+            color: #EFB6C8;
+            margin-bottom: 5%;
+            text-shadow: 0 0 30px rgba(239, 182, 200, 0.8);
+        }
+        
+        .other-players {
+            display: flex;
+            flex-direction: column;
+            gap: 2%;
+            max-width: 60%;
+            margin: 0 auto;
+        }
+        
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 2%;
+            background: linear-gradient(135deg, #6d5b7f 0%, #5d4d70 100%);
+            border: 1px solid #8174A0;
+            font-size: clamp(1.5rem, 2.5vw, 3rem);
+            font-weight: 600;
+        }
+        
+        /* PRESENTATIONS */
+        #presentations-screen {
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .presentation-container {
+            max-width: 80%;
+            text-align: center;
+        }
+        
+        .presentation-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(3rem, 5vw, 6rem);
+            font-weight: 900;
+            color: #EFB6C8;
+            margin-bottom: 3%;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+        }
+        
+        .presentation-image {
+            width: 40%;
+            max-height: 40vh;
+            object-fit: contain;
+            margin: 3% auto;
+            border: 2px solid #8174A0;
+            box-shadow: 0 0 30px rgba(129, 116, 160, 0.4);
+        }
+        
+        .presentation-text {
+            font-size: clamp(1.2rem, 2vw, 2.5rem);
+            font-weight: 400;
+            line-height: 1.6;
+            color: #f5f0f6;
+            margin-top: 3%;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 3%;
+            margin-top: 5%;
+        }
+        
+        .game-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(4rem, 7vw, 9rem);
+            font-weight: 900;
+            color: #EFB6C8;
+            text-align: center;
+            margin-bottom: 2%;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            text-shadow: 0 0 40px rgba(239, 182, 200, 0.7);
+        }
+        
+        .game-subtitle {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: clamp(0.5rem, 1vw, 1.2rem);
+            font-weight: 300;
+            color: #A888B5;
+            text-align: center;
+            margin-bottom: 5%;
+            letter-spacing: 2px;
+        }
+        
+        /* START SCREEN */
+        #start-screen {
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .start-button {
+            background: linear-gradient(135deg, #8174A0 0%, #6d5b7f 100%);
+            border: 3px solid #EFB6C8;
+            color: #EFB6C8;
+            padding: 3% 5%;
+            font-family: 'Orbitron', sans-serif;
+            font-size: clamp(3rem, 5vw, 7rem);
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.4s;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(239, 182, 200, 0.4);
+        }
+        
+        .start-button:hover {
+            background: linear-gradient(135deg, #EFB6C8 0%, #FFD2A0 100%);
+            color: #2d2438;
+            border-color: #FFD2A0;
+            box-shadow: 0 0 60px rgba(239, 182, 200, 0.8);
+            transform: scale(1.05);
+        }
+        
+        .start-subtitle {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: clamp(1rem, 2vw, 2.5rem);
+            font-weight: 300;
+            color: #A888B5;
+            text-align: center;
+            margin-top: 3%;
+            letter-spacing: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- START SCREEN -->
+        <div id="start-screen" class="screen active">
+            <div style="text-align: center;">
+                <button class="start-button" onclick="startGame()">¿Quién Sabe Algo?</button>
+                <div class="start-subtitle">quizá Con Damián Cabrio</div>
+            </div>
+        </div>
+        
+        <!-- MAIN BOARD SCREEN -->
+        <div id="board-screen" class="screen">
+            <div id="board"></div>
+            
+            <div class="players-container">
+                <div class="player" data-player="0">
+                    <div class="player-name">Silvia</div>
+                    <div class="player-score">0</div>
+                </div>
+                <div class="player" data-player="1">
+                    <div class="player-name">Pedro</div>
+                    <div class="player-score">0</div>
+                </div>
+                <div class="player" data-player="2">
+                    <div class="player-name">Javier</div>
+                    <div class="player-score">0</div>
+                </div>
+                <div class="player" data-player="3">
+                    <div class="player-name">Damián</div>
+                    <div class="player-score">0</div>
+                </div>
+            </div>
+            
+            <div class="btn-container right">
+                <button class="btn" onclick="showScoreboard()">Scoreboard</button>
+                <button class="btn" onclick="showPresentations()">Presentaciones</button>
+            </div>
+        </div>
+        
+        <!-- QUESTION SCREEN -->
+        <div id="question-screen" class="screen">
+            <div class="question-container">
+                <div class="question-text" id="question-text"></div>
+            </div>
+            
+            <div class="answers-grid" id="answers-grid"></div>
+            
+            <div class="btn-container left">
+                <button class="btn" onclick="backToBoard()">← Volver</button>
+            </div>
+        </div>
+        
+        <!-- SCOREBOARD SCREEN -->
+        <div id="scoreboard-screen" class="screen">
+            <div class="scoreboard-title">Puntuación</div>
+            <div id="scoreboard-content"></div>
+            
+            <div class="btn-container left">
+                <button class="btn" onclick="backToBoard()">← Volver</button>
+            </div>
+        </div>
+        
+        <!-- PRESENTATIONS SCREEN -->
+        <div id="presentations-screen" class="screen">
+            <div class="game-title">¿Quién Sabe Algo?</div>
+            <div class="game-subtitle">quizá Con Damián Cabrio</div>
+            <div class="presentation-container" id="presentation-content"></div>
+            
+            <div class="btn-container left">
+                <button class="btn" onclick="backToBoard()">← Volver</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // ============= DATA =============
+        const categories = [
+            'Creadores',
+            'Épicas',
+            'Campeones',
+            'Laboratorio',
+            'Crónicas',
+            'Locura'
+        ];
+        
+        const players = ['Silvia', 'Pedro', 'Javier', 'Damián'];
+        
+        const playerPresentations = [
+            {
+                name: 'Silvia',
+                image: 'silvia.jpg',
+                text: 'De [ciudad], trabaja en [trabajo]. Le encanta [hobby]. Dato curioso: [algo gracioso].'
+            },
+            {
+                name: 'Pedro',
+                image: 'pedro.jpg',
+                text: 'De [ciudad], trabaja en [trabajo]. Le encanta [hobby]. Dato curioso: [algo gracioso].'
+            },
+            {
+                name: 'Javier',
+                image: 'javier.jpg',
+                text: 'De [ciudad], trabaja en [trabajo]. Le encanta [hobby]. Dato curioso: [algo gracioso].'
+            },
+            {
+                name: 'Damián',
+                image: 'damian.jpg',
+                text: 'De [ciudad], trabaja en [trabajo]. Le encanta [hobby]. Dato curioso: [algo gracioso].'
+            }
+        ];
+        
+        // Questions structure: [category][value] = { question, answers: [4 answers], correct: index }
+        const questions = {
+            0: { // Creadores
+                100: { question: 'Pregunta placeholder 1', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 0 },
+                200: { question: 'Pregunta placeholder 2', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 1 },
+                300: { question: 'Pregunta placeholder 3', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 2 },
+                400: { question: 'Pregunta placeholder 4', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 3 },
+                500: { question: 'Pregunta placeholder 5', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 0 }
+            },
+            1: { // Épicas
+                100: { question: 'Pregunta placeholder 1', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 0 },
+                200: { question: 'Pregunta placeholder 2', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 1 },
+                300: { question: 'Pregunta placeholder 3', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 2 },
+                400: { question: 'Pregunta placeholder 4', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 3 },
+                500: { question: 'Pregunta placeholder 5', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 0 }
+            },
+            2: { // Campeones
+                100: { question: 'Pregunta placeholder 1', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 0 },
+                200: { question: 'Pregunta placeholder 2', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 1 },
+                300: { question: 'Pregunta placeholder 3', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 2 },
+                400: { question: 'Pregunta placeholder 4', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 3 },
+                500: { question: 'Pregunta placeholder 5', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 0 }
+            },
+            3: { // Laboratorio
+                100: { question: 'Pregunta placeholder 1', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 0 },
+                200: { question: 'Pregunta placeholder 2', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 1 },
+                300: { question: 'Pregunta placeholder 3', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 2 },
+                400: { question: 'Pregunta placeholder 4', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 3 },
+                500: { question: 'Pregunta placeholder 5', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 0 }
+            },
+            4: { // Crónicas
+                100: { question: 'Pregunta placeholder 1', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 0 },
+                200: { question: 'Pregunta placeholder 2', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 1 },
+                300: { question: 'Pregunta placeholder 3', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 2 },
+                400: { question: 'Pregunta placeholder 4', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 3 },
+                500: { question: 'Pregunta placeholder 5', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 0 }
+            },
+            5: { // Locura
+                100: { question: 'Pregunta placeholder 1', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 0 },
+                200: { question: 'Pregunta placeholder 2', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 1 },
+                300: { question: 'Pregunta placeholder 3', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 2 },
+                400: { question: 'Pregunta placeholder 4', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 3 },
+                500: { question: 'Pregunta placeholder 5', answers: ['Respuesta A', 'Respuesta B', 'Respuesta C', 'Respuesta D'], correct: 0 }
+            }
+        };
+        
+        // ============= AUDIO =============
+        const audio = {
+            background: null,
+            tension: null,
+            correctSting: null,
+            failSting: null,
+            clap: null
+        };
+        
+        // Placeholder para audio - reemplazar con tus archivos
+        function initAudio() {
+            audio.background = new Audio('background-music.mp3');
+            audio.tension = new Audio('tension-music.mp3');
+            audio.correctSting = new Audio('correct-sting.mp3');
+            audio.failSting = new Audio('fail-sting.mp3');
+            audio.clap = new Audio('clap.mp3');
+            
+            if (audio.background) {
+                audio.background.loop = true;
+                audio.background.volume = 0.3;
+            }
+            
+            if (audio.tension) {
+                audio.tension.loop = true;
+            }
+        }
+        
+        function playBackground() {
+            if (audio.background) {
+                audio.background.currentTime = 0;
+                audio.background.volume = 0.3;
+                audio.background.play().catch(e => console.log('Audio play failed:', e));
+            }
+        }
+        
+        function stopBackground() {
+            if (audio.background) {
+                audio.background.pause();
+                audio.background.currentTime = 0;
+            }
+        }
+        
+        function fadeOutBackground(duration = 500) {
+            if (audio.background && audio.background.volume > 0) {
+                const startVolume = audio.background.volume;
+                const step = startVolume / (duration / 50);
+                const fade = setInterval(() => {
+                    if (audio.background.volume > step) {
+                        audio.background.volume -= step;
+                    } else {
+                        audio.background.volume = 0;
+                        audio.background.pause();
+                        clearInterval(fade);
+                    }
+                }, 50);
+            }
+        }
+        
+        function fadeInBackground(duration = 500) {
+            if (audio.background) {
+                audio.background.volume = 0;
+                audio.background.currentTime = 0;
+                audio.background.play().catch(e => console.log('Audio play failed:', e));
+                const targetVolume = 0.3;
+                const step = targetVolume / (duration / 50);
+                const fade = setInterval(() => {
+                    if (audio.background.volume < targetVolume - step) {
+                        audio.background.volume += step;
+                    } else {
+                        audio.background.volume = targetVolume;
+                        clearInterval(fade);
+                    }
+                }, 50);
+            }
+        }
+        
+        function playTension() {
+            if (audio.tension) {
+                audio.tension.currentTime = 0;
+                audio.tension.play().catch(e => console.log('Audio play failed:', e));
+            }
+        }
+        
+        function stopTension() {
+            if (audio.tension) {
+                audio.tension.pause();
+                audio.tension.currentTime = 0;
+            }
+        }
+        
+        function playCorrectSting() {
+            if (audio.correctSting) {
+                audio.correctSting.currentTime = 0;
+                audio.correctSting.play().catch(e => console.log('Audio play failed:', e));
+            }
+        }
+        
+        function playFailSting() {
+            if (audio.failSting) {
+                audio.failSting.currentTime = 0;
+                audio.failSting.play().catch(e => console.log('Audio play failed:', e));
+            }
+        }
+        
+        function playClap() {
+            if (audio.clap) {
+                audio.clap.currentTime = 0;
+                audio.clap.play().catch(e => console.log('Audio play failed:', e));
+            }
+        }
+        
+        // ============= GAME STATE =============
+        let gameState = {
+            scores: [0, 0, 0, 0],
+            selectedPlayer: null,
+            questionStates: {}, // {categoryIndex-value: 'unanswered'|'correct'|'wrong'}
+            currentQuestion: null,
+            hasStarted: false
+        };
+        
+        // ============= START GAME =============
+        function startGame() {
+            gameState.hasStarted = true;
+            playBackground();
+            showPresentations();
+        }
+        
+        // ============= INITIALIZATION =============
+        function initBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+            
+            categories.forEach((category, catIndex) => {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                
+                const header = document.createElement('div');
+                header.className = 'category-header';
+                header.textContent = category;
+                categoryDiv.appendChild(header);
+                
+                [100, 200, 300, 400, 500].forEach(value => {
+                    const btn = document.createElement('button');
+                    btn.className = 'question-btn';
+                    btn.textContent = value;
+                    
+                    const key = `${catIndex}-${value}`;
+                    const state = gameState.questionStates[key] || 'unanswered';
+                    
+                    if (state === 'correct') {
+                        btn.classList.add('answered-correct');
+                    } else if (state === 'wrong') {
+                        btn.classList.add('answered-wrong');
+                    }
+                    
+                    btn.onclick = () => openQuestion(catIndex, value);
+                    categoryDiv.appendChild(btn);
+                });
+                
+                board.appendChild(categoryDiv);
+            });
+        }
+        
+        function initPlayers() {
+            document.querySelectorAll('.player').forEach((playerDiv, index) => {
+                playerDiv.onclick = () => selectPlayer(index);
+            });
+        }
+        
+        function selectPlayer(index) {
+            gameState.selectedPlayer = index;
+            document.querySelectorAll('.player').forEach((p, i) => {
+                p.classList.toggle('selected', i === index);
+            });
+        }
+        
+        function updateScores() {
+            document.querySelectorAll('.player').forEach((playerDiv, index) => {
+                const scoreDiv = playerDiv.querySelector('.player-score');
+                scoreDiv.textContent = gameState.scores[index];
+            });
+        }
+        
+        // ============= NAVIGATION =============
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+        
+        function backToBoard() {
+            stopTension();
+            showScreen('board-screen');
+            fadeInBackground();
+            initBoard(); // Refresh board to show updated colors
+        }
+        
+        // ============= QUESTION LOGIC =============
+        function openQuestion(categoryIndex, value) {
+            if (gameState.selectedPlayer === null) {
+                alert('Selecciona un jugador primero');
+                return;
+            }
+            
+            gameState.currentQuestion = {
+                category: categoryIndex,
+                value: value,
+                data: questions[categoryIndex][value]
+            };
+            
+            fadeOutBackground();
+            
+            setTimeout(() => {
+                showScreen('question-screen');
+                displayQuestion();
+                playTension();
+            }, 300);
+        }
+        
+        function displayQuestion() {
+            const q = gameState.currentQuestion.data;
+            document.getElementById('question-text').textContent = q.question;
+            
+            const grid = document.getElementById('answers-grid');
+            grid.innerHTML = '';
+            
+            q.answers.forEach((answer, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = answer;
+                btn.onclick = () => selectAnswer(index);
+                grid.appendChild(btn);
+                
+                setTimeout(() => {
+                    btn.classList.add('show');
+                }, index * 500);
+            });
+        }
+        
+        function selectAnswer(answerIndex) {
+            const q = gameState.currentQuestion.data;
+            const buttons = document.querySelectorAll('.answer-btn');
+            
+            buttons.forEach(btn => btn.disabled = true);
+            
+            stopTension();
+            
+            setTimeout(() => {
+                const isCorrect = answerIndex === q.correct;
+                const key = `${gameState.currentQuestion.category}-${gameState.currentQuestion.value}`;
+                
+                if (isCorrect) {
+                    playCorrectSting();
+                    buttons[answerIndex].classList.add('correct');
+                    gameState.scores[gameState.selectedPlayer] += gameState.currentQuestion.value;
+                    gameState.questionStates[key] = 'correct';
+                } else {
+                    playFailSting();
+                    buttons[answerIndex].classList.add('wrong');
+                    buttons[q.correct].classList.add('correct');
+                    gameState.questionStates[key] = 'wrong';
+                }
+                
+                updateScores();
+            }, 1000);
+        }
+        
+        // ============= SCOREBOARD =============
+        function showScoreboard() {
+            const content = document.getElementById('scoreboard-content');
+            content.innerHTML = '';
+            
+            const sorted = gameState.scores.map((score, index) => ({
+                name: players[index],
+                score: score,
+                index: index
+            })).sort((a, b) => b.score - a.score);
+            
+            const leader = document.createElement('div');
+            leader.className = 'leader';
+            leader.textContent = `${sorted[0].name}: ${sorted[0].score}`;
+            content.appendChild(leader);
+            
+            const othersDiv = document.createElement('div');
+            othersDiv.className = 'other-players';
+            
+            for (let i = 1; i < sorted.length; i++) {
+                const item = document.createElement('div');
+                item.className = 'score-item';
+                item.innerHTML = `<span>${sorted[i].name}</span><span>${sorted[i].score}</span>`;
+                othersDiv.appendChild(item);
+            }
+            
+            content.appendChild(othersDiv);
+            
+            fadeOutBackground();
+            playClap();
+            showScreen('scoreboard-screen');
+        }
+        
+        // ============= PRESENTATIONS =============
+        let currentPresentation = 0;
+        
+        function showPresentations() {
+            currentPresentation = 0;
+            displayPresentation();
+            // Keep background music playing, no fade out
+            showScreen('presentations-screen');
+        }
+        
+        function displayPresentation() {
+            const pres = playerPresentations[currentPresentation];
+            const content = document.getElementById('presentation-content');
+            
+            content.innerHTML = `
+                <div class="presentation-name">${pres.name}</div>
+                <img src="${pres.image}" class="presentation-image" alt="${pres.name}" style="display: none;" onload="this.style.display='block'">
+                <div class="presentation-text">${pres.text}</div>
+                <div class="nav-buttons">
+                    ${currentPresentation > 0 ? '<button class="btn" onclick="prevPresentation()">← Anterior</button>' : ''}
+                    ${currentPresentation < playerPresentations.length - 1 ? '<button class="btn" onclick="nextPresentation()">Siguiente →</button>' : '<button class="btn" onclick="backToBoard()">Comenzar Quiz →</button>'}
+                </div>
+            `;
+        }
+        
+        function nextPresentation() {
+            if (currentPresentation < playerPresentations.length - 1) {
+                currentPresentation++;
+                displayPresentation();
+            }
+        }
+        
+        function prevPresentation() {
+            if (currentPresentation > 0) {
+                currentPresentation--;
+                displayPresentation();
+            }
+        }
+        
+        // ============= STARTUP =============
+        window.onload = function() {
+            initAudio();
+            initBoard();
+            initPlayers();
+        };
+    </script>
+</body>
+</html>
